@@ -1,0 +1,19 @@
+| Scenario                      | Log Loss ↓ (Better if Lower) |
+|------------------------------|-------------------------------|
+| **Base**                     | 0.5185                        |
+| **Add `callcard`**           | 0.5032 ✅                     |
+| **Add `wireless`**           | 0.5192                        |
+| **Add both `callcard` & `wireless`** | **0.5005** ✅✅ *(Best)*       |
+| **Remove `equip`**           | 0.5510 ❌                     |
+| **Remove `income` & `employ`** | 0.5278 ❌                     |
+
+
+Insights:
+
+    Adding callcard improves model performance.
+
+    Adding wireless alone has negligible impact.
+
+    Adding both features achieves the best performance (lowest log loss).
+
+    Removing equip or income & employ degrades performance—especially equip.
