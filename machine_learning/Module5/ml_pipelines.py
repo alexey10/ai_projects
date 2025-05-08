@@ -30,7 +30,30 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 #Fit the pipeline on the training set
 
+pipeline.fit(X_train, y_train)
+
 # Measure the pipeline accuracy on the test data
 test_score = pipeline.score(X_test, y_test)
 print(f"{test_score:.3f}")
 
+#Get the model predictions
+y_pred = pipeline.predict(X_test)
+
+print(y_pred)
+
+# generate the confusion matrix
+conf_matrix = confusion_matrix(y_test, y_pred)
+
+# Create a plot for the confusion matrix
+plt.figure()
+sns.heatmap(conf_matrix, annot=True, cmap='Blues', fmt='d',
+            xticklabels=labels, yticklabels=labels)
+
+# Set the title and labels
+plt.title('Classification Pipeline Confusion Matrix')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+
+# Show the plot
+plt.tight_layout()
+plt.show()
