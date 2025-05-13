@@ -15,6 +15,7 @@ from keras.layers import Layer
 import warnings
 warnings.simplefilter('ignore', FutureWarning)
 
+# Data Preparation
 # Sample parallel sentences (English -> Spanish)
 input_texts = [
     "Hello.", "How are you?", "I am learning machine translation.", "What is your name?", "I love programming."
