@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 # import seaborn as sns
 from sklearn.manifold import TSNE
 
-from IPython.core.display import display, SVG
+from IPython.display import display, SVG
 
 
 from torchtext.vocab import build_vocab_from_iterator
@@ -123,3 +123,154 @@ def train_model(model, dataloader, criterion, optimizer, num_epochs=1000):
         epoch_losses.append(running_loss / len(dataloader))
     
     return model, epoch_losses
+
+toy_data = """I wish I was little bit taller
+I wish I was a baller
+She wore a small black dress to the party
+The dog chased a big red ball in the park
+He had a huge smile on his face when he won the race
+The tiny kitten played with a fluffy toy mouse
+The team celebrated their victory with a grand parade
+She bought a small, delicate necklace for her sister
+The mountain peak stood majestic and tall against the clear blue sky
+The toddler took small, careful steps as she learned to walk
+The house had a spacious backyard with a big swimming pool
+He felt a sense of accomplishment after completing the challenging puzzle
+The chef prepared a delicious, flavorful dish using fresh ingredients
+The children played happily in the small, cozy room
+The book had an enormous impact on readers around the world
+The wind blew gently, rustling the leaves of the tall trees
+She painted a beautiful, intricate design on the small canvas
+The concert hall was filled with thousands of excited fans
+The garden was adorned with colorful flowers of all sizes
+I hope to achieve great success in my chosen career path
+The skyscraper towered above the city, casting a long shadow
+He gazed in awe at the breathtaking view from the mountaintop
+The artist created a stunning masterpiece with bold brushstrokes
+The baby took her first steps, a small milestone that brought joy to her parents
+The team put in a tremendous amount of effort to win the championship
+The sun set behind the horizon, painting the sky in vibrant colors
+The professor gave a fascinating lecture on the history of ancient civilizations
+The house was filled with laughter and the sound of children playing
+She received a warm, enthusiastic welcome from the audience
+The marathon runner had incredible endurance and determination
+The child's eyes sparkled with excitement upon opening the gift
+The ship sailed across the vast ocean, guided by the stars
+The company achieved remarkable growth in a short period of time
+The team worked together harmoniously to complete the project
+The puppy wagged its tail, expressing its happiness and affection
+She wore a stunning gown that made her feel like a princess
+The building had a grand entrance with towering columns
+The concert was a roaring success, with the crowd cheering and clapping
+The baby took a tiny bite of the sweet, juicy fruit
+The athlete broke a new record, achieving a significant milestone in her career
+The sculpture was a masterpiece of intricate details and craftsmanship
+The forest was filled with towering trees, creating a sense of serenity
+The children built a small sandcastle on the beach, their imaginations running wild
+The mountain range stretched as far as the eye could see, majestic and awe-inspiring
+The artist's brush glided smoothly across the canvas, creating a beautiful painting
+She received a small token of appreciation for her hard work and dedication
+The orchestra played a magnificent symphony that moved the audience to tears
+The flower bloomed in vibrant colors, attracting butterflies and bees
+The team celebrated their victory with a big, extravagant party
+The child's laughter echoed through the small room, filling it with joy
+The sunflower stood tall, reaching for the sky with its bright yellow petals
+The city skyline was dominated by tall buildings and skyscrapers
+The cake was adorned with a beautiful, elaborate design for the special occasion
+The storm brought heavy rain and strong winds, causing widespread damage
+The small boat sailed peacefully on the calm, glassy lake
+The artist used bold strokes of color to create a striking and vivid painting
+The couple shared a passionate kiss under the starry night sky
+The mountain climber reached the summit after a long and arduous journey
+The child's eyes widened in amazement as the magician performed his tricks
+The garden was filled with the sweet fragrance of blooming flowers
+The basketball player made a big jump and scored a spectacular slam dunk
+The cat pounced on a small mouse, displaying its hunting instincts
+The mansion had a grand entrance with a sweeping staircase and chandeliers
+The raindrops fell gently, creating a rhythmic patter on the roof
+The baby took a big step forward, encouraged by her parents' applause
+The actor delivered a powerful and emotional performance on stage
+The butterfly fluttered its delicate wings, mesmerizing those who watched
+The company launched a small-scale advertising campaign to test the market
+The building was constructed with strong, sturdy materials to withstand earthquakes
+The singer's voice was powerful and resonated throughout the concert hall
+The child built a massive sandcastle with towers, moats, and bridges
+The garden was teeming with a variety of small insects and buzzing bees
+The athlete's muscles were well-developed and strong from years of training
+The sun cast long shadows as it set behind the mountains
+The couple exchanged heartfelt vows in a beautiful, intimate ceremony
+The dog wagged its tail vigorously, a sign of excitement and happiness
+The baby let out a tiny giggle, bringing joy to everyone around"""
+
+# Step 1: Get tokenizer
+tokenizer = get_tokenizer('basic_english')  # This uses basic English tokenizer. You can choose another.
+
+# Step 2: Tokenize sentences
+def tokenize_data(sentences):
+    for sentence in sentences:
+        yield tokenizer(sentence)
+
+tokenized_toy_data = tokenizer (toy_data)
+
+
+vocab = build_vocab_from_iterator(tokenize_data(tokenized_toy_data), specials=['<unk>'])
+vocab.set_default_index(vocab["<unk>"])
+
+# Test
+sample_sentence = "I wish I was a baller"
+tokenized_sample = tokenizer(sample_sentence)
+encoded_sample = [vocab[token] for token in tokenized_sample]
+print("Encoded sample:", encoded_sample)
+
+text_pipeline = lambda tokens:[ vocab[token]  for token in tokens]
+
+CONTEXT_SIZE = 2
+
+
+cobow_data = []
+
+# modified code
+
+for i in range(CONTEXT_SIZE, len(tokenized_toy_data ) - CONTEXT_SIZE):
+
+    context = (
+
+        [tokenized_toy_data [i - CONTEXT_SIZE + j] for j in range(CONTEXT_SIZE)]
+
+        + [tokenized_toy_data [i + j + 1] for j in range(CONTEXT_SIZE)]
+
+    )
+
+    target = tokenized_toy_data [i]
+
+    cobow_data.append((context, target))
+
+print(cobow_data[0])
+
+print(cobow_data[1])
+
+def collate_batch(batch):
+    target_list, context_list, offsets = [], [], [0]
+    for _context, _target in batch:
+        
+        target_list.append(vocab[_target])  
+        processed_context = torch.tensor(text_pipeline(_context), dtype=torch.int64)
+        context_list.append(processed_context)
+        offsets.append(processed_context.size(0))
+    target_list = torch.tensor(target_list, dtype=torch.int64)
+    offsets = torch.tensor(offsets[:-1]).cumsum(dim=0)
+    context_list = torch.cat(context_list)
+    return target_list.to(device), context_list.to(device), offsets.to(device)
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device
+
+target_list, context_list, offsets=collate_batch(cobow_data[0:10])
+print(f"target_list(Tokenized target words): {target_list} , context_list(Surrounding context words): {context_list} , offsets(Starting indexes of context words for each target): {offsets} ")
+
+BATCH_SIZE = 64  # batch size for training
+
+dataloader_cbow = DataLoader(
+    cobow_data, batch_size=BATCH_SIZE, shuffle=True, collate_fn=collate_batch)
+print(dataloader_cbow) 
+
