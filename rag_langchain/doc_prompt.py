@@ -1,4 +1,4 @@
-
+#Placing Whole Document into Prompt and Asking the Model
 
 def warn(*args, **kwargs):
     pass
