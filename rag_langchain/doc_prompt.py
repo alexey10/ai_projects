@@ -1,4 +1,4 @@
-#Placing Whole Document into Prompt and Asking the Model
+
 
 def warn(*args, **kwargs):
     pass
@@ -80,9 +80,9 @@ response = query_chain.invoke(input={'content': content, 'question': query})
 print(f"Response from model [{model_name}]: {response['text']}")
 
 #model_names = [
-#    'ibm/granite-3-8b-instruct',
-#    'meta-llama/llama-3-2-3b-instruct'
-#    'mistralai/Mixtral-8x7B-Instruct-v0.1'
+#    'granite_llm',
+#    'llama_llm'
+#    'mixtral_llm'
 #]
 #
 #query = "It is in which year of our nation?"
